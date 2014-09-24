@@ -8,35 +8,21 @@ The directory `perseus_data` contains part of speech data taken from Perseus. `p
 
 # Use
 ``` python
-In [1]: s = 'Multum tibi esse animi scio; nam etiam antequam instrueres te praeceptis salutaribus et dura vincentibus, satis adversus fortunam placebas tibi, et multo magis postquam cum illa manum conseruisti viresque expertus es tuas, quae numquam certam dare fiduciam sui possunt nisi cum multae difficultates hinc et illinc apparuerunt, aliquando vero et propius accesserunt.'
 
-In [2]: import re
+In [1]: import re
 
-In [3]: import ast
+In [2]: import ast
 
-In [4]: p = re.compile('\w+', re.IGNORECASE)
+In [3]: p = re.compile('\w+', re.IGNORECASE)
 
-In [5]: %paste
-with open('/Users/kyle/cltk_data/compiled/pos_latin/cltk_latin_pos_dict.txt') as f:
+In [4]: with open('/Users/kyle/cltk_data/compiled/pos_latin/cltk_latin_pos_dict.txt') as f:
     r = f.read()
 
-In [6]: d = ast.literal_eval(r)
+In [5]: d = ast.literal_eval(r)
 
-for match in p.finditer(s):
-    w = match.group()
-    tag = d[w]['perseus_pos']
-    print(tag)
+In [6]: s = 'Multum tibi esse animi scio; nam etiam antequam instrueres te praeceptis salutaribus et dura vincentibus, satis adversus fortunam placebas tibi, et multo magis postquam cum illa manum conseruisti viresque expertus es tuas, quae numquam certam dare fiduciam sui possunt nisi cum multae difficultates hinc et illinc apparuerunt, aliquando vero et propius accesserunt.'
 
-for match in p.finditer(s):
-    w = match.group()
-    try:
-        tag = d[w]['perseus_pos']
-        print(tag)
-    except:
-	    pass
-
-
-In [20]: for match in p.finditer(s):
+In [7]: for match in p.finditer(s):
     w = match.group()
     try:
         tag = d[w]['perseus_pos']
