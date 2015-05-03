@@ -1,5 +1,7 @@
 from cltk.corpus.greek.beta_to_unicode import Replacer
-from collections import  defaultdict
+from collections import Counter
+from collections import defaultdict
+import operator
 
 replacer = Replacer()
 
@@ -11,12 +13,24 @@ def file_line_generator(file):
             yield file_line[:-1]  # remove '\n' from end of each line
 
 
+def iter_headwords(def_dict):
+    for inflection, headwords in def_dict.items():
+        for headword in list(headwords):
+            yield headword
+
+
+def make_headword_count(def_dict):
+    headwords = iter_headwords(def_dict)
+    return Counter(headwords)
+
+
+
 def parse_perseus_lemmata_file(file_generator, greek):
     """Parse lemmata file, looping through string for all data."""
     count = 0
     for line in file_generator:
         count += 1
-        if count % 1000 == 0:
+        if count % 10000 == 0:
             print('Parsing line {0}'.format(count))
         line_split = line.split('\t')
         headword = line_split[0]
@@ -48,23 +62,42 @@ def parse_perseus_lemmata_file(file_generator, greek):
                     lemma = replacer.beta_code(lemma.upper() + ' ')[:-1].lower()  # add space to get final sigma 'ς', then rm it #? why some coming out capitalized?
                     headword = replacer.beta_code(headword.upper() + ' ')[:-1].lower()  # add space to get final sigma 'ς', then rm it
 
-                print(lemma, headword)
+                #print(lemma, headword)
 
                 yield lemma, headword
 
 
 if __name__ == '__main__':
     lemma_headword_map = {}
-    greek_file_generator = file_line_generator('perseus_data/latin-lemmata.txt')
-    greek_lemma_headword = parse_perseus_lemmata_file(greek_file_generator, greek=False)
+    file_generator = file_line_generator('perseus_data/latin-lemmata.txt')
+    lemma_headword = parse_perseus_lemmata_file(file_generator, greek=False)
 
     print('Starting to build map …')
     lemmata_dd = defaultdict(set)
-    for k, v in greek_lemma_headword:
+    for k, v in lemma_headword:
         lemmata_dd[k].add(v)
 
-    '''
+    print('Building headword frequencies …')
+    headword_frequencies = make_headword_count(lemmata_dd)
+
+    print('Building final lemma-headword dict …')
+    # for any lemma with more than one possible headword
+    # check each for which occurs most
+    #final_lemmata_dd = defaultdict(str)
+    final_lemmata = {}
+    for k, v in lemmata_dd.items():
+        if len(list(v)) > 1:
+            count_dict = {}
+            for curr_hw in list(v):
+                curr_count = headword_frequencies[curr_hw]
+                count_dict[curr_hw] = curr_count
+            # http://stackoverflow.com/a/268285
+            # if tie then takes one
+            top_headword = max(count_dict.items(), key=operator.itemgetter(1))[0]
+            final_lemmata[k] = top_headword
+        else:
+            final_lemmata[k] = list(v)[0]
+
     print('Starting to write file …')
     with open('latin_lemmata_cltk.py', 'w') as file_opened:
-        file_opened.write(str(dict(lemmata_dd)))
-    '''
+        file_opened.write('LEMMATA = ' + str(dict(final_lemmata)))
