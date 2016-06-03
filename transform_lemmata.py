@@ -72,15 +72,15 @@ if __name__ == '__main__':
     file_generator = file_line_generator('perseus_data/latin-lemmata.txt')
     lemma_headword = parse_perseus_lemmata_file(file_generator, greek=False)
 
-    print('Starting to build map …')
+    print('Starting to build map...')
     lemmata_dd = defaultdict(set)
     for k, v in lemma_headword:
         lemmata_dd[k].add(v)
 
-    print('Building headword frequencies …')
+    print('Building headword frequencies...')
     headword_frequencies = make_headword_count(lemmata_dd)
 
-    print('Building final lemma-headword dict …')
+    print('Building final lemma-headword dict...')
     # for any lemma with more than one possible headword
     # check each for which occurs most
     #final_lemmata_dd = defaultdict(str)
@@ -98,6 +98,17 @@ if __name__ == '__main__':
         else:
             final_lemmata[k] = list(v)[0]
 
-    print('Starting to write file …')
+    print('Starting to write file...')
     with open('latin_lemmata_cltk.py', 'w') as file_opened:
+        file_opened.write('LEMMATA = ' + str(dict(final_lemmata)))
+        
+    print('Building lemma-headword dict of only unambiguous lemmas...')
+    # skip any lemma with more than one possible headword
+    final_lemmata = {}
+    for k, v in lemmata_dd.items():
+        if len(list(v)) == 1:
+            final_lemmata[k] = list(v)[0]
+
+    print('Starting to write file...')
+    with open('latin_unambiguous_lemmata_cltk.py', 'w') as file_opened:
         file_opened.write('LEMMATA = ' + str(dict(final_lemmata)))
