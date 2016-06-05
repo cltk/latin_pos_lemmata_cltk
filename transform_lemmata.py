@@ -106,8 +106,9 @@ if __name__ == '__main__':
     # skip any lemma with more than one possible headword
     final_lemmata = {}
     for k, v in lemmata_dd.items():
-        if len(list(v)) == 1:
-            final_lemmata[k] = list(v)[0]
+        headword = list(v)[0]
+        if all([word == headword for word in v]):
+            final_lemmata[k] = headword
 
     print('Starting to write file...')
     with open('latin_unambiguous_lemmata_cltk.py', 'w') as file_opened:
